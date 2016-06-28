@@ -1,0 +1,962 @@
+clc;
+clear;
+
+iterations=1000; %1000 iterations
+plant1=unidrnd(95,iterations,1)+25; %first planting range from day 25 to day 120 of the year
+har1=plant1+unidrnd(11,iterations,1)+79; %growth takes 80-90 days from planting
+plant2=har1+unidrnd(8,iterations,1)+20; %second planting done after 21-28 days of field preparation
+har2=plant2+unidrnd(11,iterations,1)+79; %growth takes 80-90 days from planting
+%Assume field is 63.6mX63.6m, 
+%Assume 12 inch gap between plants and 20 inch gap between rows
+%(http://www.almanac.com/plant/lettuce)
+%Number of rows = 2666; 5000 plants in each row, totaling 26000 plants.
+%Variables for inputs and subsystems
+
+plantnum=26000; %26000 plants in a harvest
+amount_feralloc=4260; %amount of swine feces from local defecation per day
+amount_feralprec=1000; %amount of swine feces from runoff per day
+amount_cattleprec=10000; %amount of cattle feces from runoff per day
+
+%precipitations in months (normalized)
+pp1=0.861194671;
+pp2=0.921357972;
+pp3=0.972496777;
+pp4=0.484588038;
+pp5=0.135367426;
+pp6=0.03824667;
+pp7=0;
+pp8=0.012462398;
+pp9=0.03008165;
+pp10=0.280189085;
+pp11=0.496347228;
+pp12=1;
+amount_cattleprec1=amount_cattleprec*pp1;
+amount_cattleprec2=amount_cattleprec*pp2;
+amount_cattleprec3=amount_cattleprec*pp3;
+amount_cattleprec4=amount_cattleprec*pp4;
+amount_cattleprec5=amount_cattleprec*pp5;
+amount_cattleprec6=amount_cattleprec*pp6;
+amount_cattleprec7=amount_cattleprec*pp7;
+amount_cattleprec8=amount_cattleprec*pp8;
+amount_cattleprec9=amount_cattleprec*pp9;
+amount_cattleprec10=amount_cattleprec*pp10;
+amount_cattleprec11=amount_cattleprec*pp11;
+amount_cattleprec12=amount_cattleprec*pp12;
+amount_feralprec1=amount_feralprec*pp1;
+amount_feralprec2=amount_feralprec*pp2;
+amount_feralprec3=amount_feralprec*pp3;
+amount_feralprec4=amount_feralprec*pp4;
+amount_feralprec5=amount_feralprec*pp5;
+amount_feralprec6=amount_feralprec*pp6;
+amount_feralprec7=amount_feralprec*pp7;
+amount_feralprec8=amount_feralprec*pp8;
+amount_feralprec9=amount_feralprec*pp9;
+amount_feralprec10=amount_feralprec*pp10;
+amount_feralprec11=amount_feralprec*pp11;
+amount_feralprec12=amount_feralprec*pp12;
+%swine fecal contamination Jan
+pd1=makedist('lognormal',-29.125,9.716);
+cont_feral1 = random(pd1,iterations,1);
+CFU_feralloc1=amount_feralloc*cont_feral1;
+CFU_feralprec1=amount_feralprec1*cont_feral1;
+%swine fecal contamination Feb
+pd2=makedist('lognormal',-29.125,9.716);
+cont_feral2 = random(pd2,iterations,1);
+CFU_feralloc2=amount_feralloc*cont_feral2;
+CFU_feralprec2=amount_feralprec2*cont_feral2;
+%swine fecal contamination Mar
+pd3=makedist('lognormal',-29.125,9.716);
+cont_feral3 = random(pd3,iterations,1);
+CFU_feralloc3=amount_feralloc*cont_feral3;
+CFU_feralprec3=amount_feralprec3*cont_feral3;
+%swine fecal contamination Apr
+pd4=makedist('lognormal',-29.125,9.716);
+cont_feral4 = random(pd4,iterations,1);
+CFU_feralloc4=amount_feralloc*cont_feral4;
+CFU_feralprec4=amount_feralprec4*cont_feral4;
+%swine fecal contamination May
+pd5=makedist('lognormal',-29.125,9.716);
+cont_feral5 = random(pd5,iterations,1);
+CFU_feralloc5=amount_feralloc*cont_feral5;
+CFU_feralprec5=amount_feralprec5*cont_feral5;
+%swine fecal contamination Jun
+pd6=makedist('lognormal',-29.125,9.716);
+cont_feral6 = random(pd6,iterations,1);
+CFU_feralloc6=amount_feralloc*cont_feral6;
+CFU_feralprec6=amount_feralprec6*cont_feral6;
+%swine fecal contamination Jul
+pd7=makedist('lognormal',-1.257,2.220);
+cont_feral7 = random(pd7,iterations,1);
+CFU_feralloc7=amount_feralloc*cont_feral7;
+CFU_feralprec7=amount_feralprec7*cont_feral7;
+%swine fecal contamination Aug
+pd8=makedist('lognormal',-2.100,2.447);
+cont_feral8 = random(pd8,iterations,1);
+CFU_feralloc8=amount_feralloc*cont_feral8;
+CFU_feralprec8=amount_feralprec8*cont_feral8;
+%swine fecal contamination Sep
+pd9=makedist('lognormal',-29.125,9.716);
+cont_feral9 = random(pd9,iterations,1);
+CFU_feralloc9=amount_feralloc*cont_feral9;
+CFU_feralprec9=amount_feralprec9*cont_feral9;
+%swine fecal contamination Oct
+pd10=makedist('lognormal',-2.754,2.623);
+cont_feral10 = random(pd10,iterations,1);
+CFU_feralloc10=amount_feralloc*cont_feral10;
+CFU_feralprec10=amount_feralprec10*cont_feral10;
+%swine fecal contamination Nov
+pd11=makedist('lognormal',-2.345,2.513);
+cont_feral11 = random(pd11,iterations,1);
+CFU_feralloc11=amount_feralloc*cont_feral11;
+CFU_feralprec11=amount_feralprec11*cont_feral11;
+%swine fecal contamination Dec
+pd12=makedist('lognormal',-2.132,2.456);
+cont_feral12 = random(pd12,iterations,1);
+CFU_feralloc12=amount_feralloc*cont_feral12;
+CFU_feralprec12=amount_feralprec12*cont_feral12;
+%cattle fecal contamination Jan
+pc1=makedist('lognormal',-10.163,4.912);
+cont_cattle1 = random(pc1,iterations,1);
+CFU_cattleprec1=amount_cattleprec1*cont_cattle1;
+%cattle fecal contamination Feb
+pc2=makedist('lognormal',-6.752,3.994);
+cont_cattle2 = random(pc2,iterations,1);
+CFU_cattleprec2=amount_cattleprec2*cont_cattle2;
+%cattle fecal contamination Mar
+pc3=makedist('lognormal',-24.918,8.887);
+cont_cattle3 = random(pc3,iterations,1);
+CFU_cattleprec3=amount_cattleprec3*cont_cattle3;
+%cattle fecal contamination Apr
+pc4=makedist('lognormal',-3.248,3.052);
+cont_cattle4 = random(pc4,iterations,1);
+CFU_cattleprec4=amount_cattleprec4*cont_cattle4;
+%cattle fecal contamination May
+pc5=makedist('lognormal',-5.864,3.754);
+cont_cattle5 = random(pc5,iterations,1);
+CFU_cattleprec5=amount_cattleprec5*cont_cattle5;
+%cattle fecal contamination Jun
+pc6=makedist('lognormal',-34.533,11.462);
+cont_cattle6 = random(pc6,iterations,1);
+CFU_cattleprec6=amount_cattleprec6*cont_cattle6;
+%cattle fecal contamination Jul
+pc7=makedist('lognormal',-1.066,2.464);
+cont_cattle7 = random(pc7,iterations,1);
+CFU_cattleprec7=amount_cattleprec7*cont_cattle7;
+%cattle fecal contamination Aug
+pc8=makedist('lognormal',-3.016,2.991);
+cont_cattle8 = random(pc8,iterations,1);
+CFU_cattleprec8=amount_cattleprec8*cont_cattle8;
+%cattle fecal contamination Sep
+pc9=makedist('lognormal',-3.441,3.104);
+cont_cattle9 = random(pc9,iterations,1);
+CFU_cattleprec9=amount_cattleprec9*cont_cattle9;
+%cattle fecal contamination Oct
+pc10=makedist('lognormal',-1.578,2.602);
+cont_cattle10 = random(pc10,iterations,1);
+CFU_cattleprec10=amount_cattleprec10*cont_cattle10;
+%cattle fecal contamination Nov
+pc11=makedist('lognormal',-6.444,3.912);
+cont_cattle11 = random(pc11,iterations,1);
+CFU_cattleprec11=amount_cattleprec11*cont_cattle11;
+%cattle fecal contamination Dec
+pc12=makedist('lognormal',-8.303,4.411);
+cont_cattle12 = random(pc12,iterations,1);
+CFU_cattleprec12=amount_cattleprec12*cont_cattle12;
+
+%Contamination in soil initialized as zeros
+CFU_soil=zeros(iterations,plantnum,365);
+
+%Contamination in soil carried over from the previous year
+for i=1:iterations
+    for j=1:plantnum
+for k=1:(365-har2(i))
+    
+    CFU_soil(i,j,1)=(10.^(log10(CFU_soil(i)+(CFU_feralloc10(i)+CFU_feralloc11(i)+CFU_feralloc12(i)+CFU_feralprec10(i)+CFU_feralprec11(i)+CFU_feralprec12(i)+CFU_cattleprec10(i)+CFU_cattleprec11(i)+CFU_cattleprec12(i))/(3*26000))));
+    
+    CFU_soil(i,j,1)=10^(log10(CFU_soil(i,j))-0.1744);
+end
+    end
+      s='part0';
+    disp(s);
+    disp(i);
+end
+loc=unidrnd(plantnum,iterations,1);
+%before crop 1
+for i=1:iterations
+    for j=1:plantnum
+      for  k=1:(plant1(i)-1)
+         if (0<k && k<=31)
+        CFU_feralloc(i)=CFU_feralloc1(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec1(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec1(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+      elseif (31<k && k<=59)
+        CFU_feralloc(i)=CFU_feralloc2(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (59<k && k<=90)
+        CFU_feralloc(i)=CFU_feralloc3(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec3(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec3(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (90<k && k<=120)
+        CFU_feralloc(i)=CFU_feralloc4(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec4(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec4(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (120<k && k<=151)
+        CFU_feralloc(i)=CFU_feralloc5(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec5(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec5(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (151<k && k<=181)
+        CFU_feralloc(i)=CFU_feralloc6(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec6(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec6(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (181<k && k<=212)
+        CFU_feralloc(i)=CFU_feralloc7(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec7(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec7(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (212<k && k<=243)
+        CFU_feralloc(i)=CFU_feralloc8(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec8(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec8(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (243<k && k<=273)
+        CFU_feralloc(i)=CFU_feralloc9(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec9(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec9(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (273<k && k<=304)
+        CFU_feralloc(i)=CFU_feralloc10(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec10(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec10(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (304<k && k<=334)
+        CFU_feralloc(i)=CFU_feralloc11(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec11(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec11(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (334<k && k<=365)
+        CFU_feralloc(i)=CFU_feralloc12(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec12(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec12(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    end
+    end
+    s='part1';
+    disp(s);
+    disp(i);
+end
+fecloc=unidrnd(365,iterations,1);
+%during crop 1
+for i=1:iterations
+      for  k=plant1(i):(har1(i)-1)
+     if (0<k && k<=31)
+        CFU_feralloc(i)=CFU_feralloc1(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec1(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec1(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        elseif (31<k && k<=59)
+        CFU_feralloc(i)=CFU_feralloc2(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        elseif (59<k && k<=90)
+        CFU_feralloc(i)=CFU_feralloc2(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (90<k && k<=120)
+        CFU_feralloc(i)=CFU_feralloc4(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec4(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec4(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (120<k && k<=151)
+        CFU_feralloc(i)=CFU_feralloc5(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec5(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec5(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (151<k && k<=181)
+        CFU_feralloc(i)=CFU_feralloc6(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec6(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec6(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (181<k && k<=212)
+        CFU_feralloc(i)=CFU_feralloc7(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec7(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec7(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (212<k && k<=243)
+        CFU_feralloc(i)=CFU_feralloc8(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec8(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec8(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (243<k && k<=273)
+        CFU_feralloc(i)=CFU_feralloc9(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec9(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec9(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (273<k && k<=304)
+        CFU_feralloc(i)=CFU_feralloc10(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec10(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec10(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (304<k && k<=334)
+        CFU_feralloc(i)=CFU_feralloc11(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec11(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec11(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (334<k && k<=365)
+        CFU_feralloc(i)=CFU_feralloc12(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec12(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec12(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        end
+      end
+    s='part2';
+    disp(s);
+    disp(i);
+end
+
+%ground preparation after crop 1
+Mean=zeros(iterations,1);
+for i=1:iterations
+  for j=1:plantnum
+    Mean(i)=Mean(i)+(CFU_soil(i,j,har1(i)))./plantnum;
+  end
+ CFU_soil(i,:,har1(i))=Mean(i);
+end
+
+%ground preparation 1
+for i=1:iterations
+    for j=1:plantnum
+      for  k=(har1(i)):(plant2(i)-1)
+          if (0<k && k<=31)
+        CFU_feralloc(i)=CFU_feralloc1(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec1(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec1(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+      elseif (31<k && k<=59)
+        CFU_feralloc(i)=CFU_feralloc2(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (59<k && k<=90)
+        CFU_feralloc(i)=CFU_feralloc3(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec3(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec3(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (90<k && k<=120)
+        CFU_feralloc(i)=CFU_feralloc4(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec4(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec4(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (120<k && k<=151)
+        CFU_feralloc(i)=CFU_feralloc5(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec5(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec5(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (151<k && k<=181)
+        CFU_feralloc(i)=CFU_feralloc6(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec6(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec6(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (181<k && k<=212)
+        CFU_feralloc(i)=CFU_feralloc7(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec7(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec7(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (212<k && k<=243)
+        CFU_feralloc(i)=CFU_feralloc8(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec8(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec8(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (243<k && k<=273)
+        CFU_feralloc(i)=CFU_feralloc9(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec9(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec9(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (273<k && k<=304)
+        CFU_feralloc(i)=CFU_feralloc10(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec10(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec10(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (304<k && k<=334)
+        CFU_feralloc(i)=CFU_feralloc11(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec11(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec11(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (334<k && k<=365)
+        CFU_feralloc(i)=CFU_feralloc12(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec12(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec12(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    end
+    end
+    s='part3';
+    disp(s);
+    disp(i);
+end
+
+%during crop 2
+for i=1:iterations
+      for  k=plant2(i):har2(i)
+      if (0<k && k<=31)
+        CFU_feralloc(i)=CFU_feralloc1(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec1(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec1(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        elseif (31<k && k<=59)
+        CFU_feralloc(i)=CFU_feralloc2(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        elseif (59<k && k<=90)
+        CFU_feralloc(i)=CFU_feralloc2(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (90<k && k<=120)
+        CFU_feralloc(i)=CFU_feralloc4(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec4(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec4(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (120<k && k<=151)
+        CFU_feralloc(i)=CFU_feralloc5(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec5(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec5(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (151<k && k<=181)
+        CFU_feralloc(i)=CFU_feralloc6(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec6(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec6(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (181<k && k<=212)
+        CFU_feralloc(i)=CFU_feralloc7(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec7(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec7(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (212<k && k<=243)
+        CFU_feralloc(i)=CFU_feralloc8(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec8(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec8(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (243<k && k<=273)
+        CFU_feralloc(i)=CFU_feralloc9(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec9(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec9(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (273<k && k<=304)
+        CFU_feralloc(i)=CFU_feralloc10(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec10(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec10(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (304<k && k<=334)
+        CFU_feralloc(i)=CFU_feralloc11(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec11(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec11(i)/26000;
+       for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    elseif (334<k && k<=365)
+        CFU_feralloc(i)=CFU_feralloc12(i)/10;
+        CFU_cattleprec(i)=CFU_cattleprec12(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec12(i)/26000;
+        for p=1:10
+        CFU_soil(i,unidrnd(plantnum),k)=CFU_soil(i,j,k)+CFU_feralloc(i);
+        end
+        for j=1:plantnum
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_cattleprec(i)+CFU_feralprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+        end
+      end
+    s='part4';
+    disp(s);
+    disp(i);
+end
+
+%ground preparation after crop 2
+Mean=zeros(iterations,1);
+for i=1:iterations
+  for j=1:plantnum
+    Mean(i)=Mean(i)+(CFU_soil(i,j,har2(i)))./plantnum;
+  end
+ CFU_soil(i,:,har2(i))=Mean(i);
+end
+
+%ground preparation 2
+for i=1:iterations
+    for j=1:plantnum
+      for  k=(har2(i)):365
+         if (0<k && k<=31)
+        CFU_feralloc(i)=CFU_feralloc1(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec1(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec1(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+      elseif (31<k && k<=59)
+        CFU_feralloc(i)=CFU_feralloc2(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec2(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec2(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (59<k && k<=90)
+        CFU_feralloc(i)=CFU_feralloc3(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec3(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec3(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (90<k && k<=120)
+        CFU_feralloc(i)=CFU_feralloc4(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec4(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec4(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (120<k && k<=151)
+        CFU_feralloc(i)=CFU_feralloc5(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec5(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec5(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (151<k && k<=181)
+        CFU_feralloc(i)=CFU_feralloc6(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec6(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec6(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (181<k && k<=212)
+        CFU_feralloc(i)=CFU_feralloc7(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec7(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec7(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (212<k && k<=243)
+        CFU_feralloc(i)=CFU_feralloc8(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec8(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec8(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (243<k && k<=273)
+        CFU_feralloc(i)=CFU_feralloc9(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec9(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec9(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (273<k && k<=304)
+        CFU_feralloc(i)=CFU_feralloc10(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec10(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec10(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (304<k && k<=334)
+        CFU_feralloc(i)=CFU_feralloc11(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec11(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec11(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+    elseif (334<k && k<=365)
+        CFU_feralloc(i)=CFU_feralloc12(i)/26000;
+        CFU_cattleprec(i)=CFU_cattleprec12(i)/26000;
+        CFU_feralprec(i)=CFU_feralprec12(i)/26000;
+        CFU_soil(i,j,k+1)=CFU_soil(i,j,k)+CFU_feralprec(i)+CFU_feralloc(i)+CFU_cattleprec(i);
+        CFU_soil(i,j,k+1)=10.^(log10(CFU_soil(i,j,k+1))-0.1744);
+        end
+    end
+    end
+    s='part5';
+    disp(s);
+    disp(i);
+end
+
+%Calculation of E. coli in crop
+
+CFU_crop1=zeros(iterations,plantnum); %initialized to zeros
+for i=1:iterations
+    for j=1:plantnum
+        for k=plant1(i):7:har1(i) %irrigation every 7th day
+          tr = (feval(@transferfn,rand())/(1.29*10^8)); %transfer rate function
+        CFU_crop1(i,j)=tr*CFU_soil(i,j,k);
+            CFU_crop1(i,j)=10.^(log10(CFU_crop1(i,j))-0.171);
+        end
+    end
+    s='crop1';
+    disp(s);
+    disp(i);
+end
+
+CFU_crop1Jan=zeros(1,plantnum);
+CFU_crop1Feb=zeros(1,plantnum);
+CFU_crop1Mar=zeros(1,plantnum);
+CFU_crop1Apr=zeros(1,plantnum);
+CFU_crop1May=zeros(1,plantnum);
+CFU_crop1Jun=zeros(1,plantnum);
+CFU_crop1Jul=zeros(1,plantnum);
+CFU_crop1Aug=zeros(1,plantnum);
+CFU_crop1Sep=zeros(1,plantnum);
+CFU_crop1Oct=zeros(1,plantnum);
+CFU_crop1Nov=zeros(1,plantnum);
+CFU_crop1Dec=zeros(1,plantnum);
+for i=1:iterations
+     if (0<har1(i) && har1(i)<=31)
+        
+CFU_crop1Jan=[CFU_crop1Jan; CFU_crop1(i,:)];
+
+
+      elseif (31<har1(i) && har1(i)<=59)
+        
+CFU_crop1Feb=[CFU_crop1Feb; CFU_crop1(i,:)];
+
+    elseif (59<har1(i) && har1(i)<=90)
+      
+CFU_crop1Mar=[CFU_crop1Mar; CFU_crop1(i,:)];
+
+    elseif (90<har1(i) && har1(i)<=120)
+        
+CFU_crop1Apr=[CFU_crop1Apr; CFU_crop1(i,:)];
+
+    elseif (120<har1(i) && har1(i)<=151)
+     
+CFU_crop1May=[CFU_crop1May; CFU_crop1(i,:)];
+
+    elseif (151<har1(i) && har1(i)<=181)
+        
+CFU_crop1Jun=[CFU_crop1Jun; CFU_crop1(i,:)];
+
+    elseif (181<har1(i) && har1(i)<=212)
+        
+CFU_crop1Jul=[CFU_crop1Jul; CFU_crop1(i,:)];
+
+    elseif (212<har1(i) && har1(i)<=243)
+        
+CFU_crop1Aug=[CFU_crop1Aug; CFU_crop1(i,:)];
+
+    elseif (243<har1(i) && har1(i)<=273)
+        
+CFU_crop1Sep=[CFU_crop1Sep; CFU_crop1(i,:)];
+
+    elseif (273<har1(i) && har1(i)<=304)
+        
+CFU_crop1Oct=[CFU_crop1Oct; CFU_crop1(i,:)];
+
+    elseif (304<har1(i) && har1(i)<=334)
+
+CFU_crop1Nov=[CFU_crop1Nov; CFU_crop1(i,:)];
+
+    elseif (334<har1(i) && har1(i)<=365)
+
+CFU_crop1Dec=[CFU_crop1Dec; CFU_crop1(i,:)];
+
+       end
+end
+CFU_crop1Jan=CFU_crop1Jan(2:end,:);
+CFU_crop1Feb=CFU_crop1Feb(2:end,:);
+CFU_crop1Mar=CFU_crop1Mar(2:end,:);
+CFU_crop1Apr=CFU_crop1Apr(2:end,:);
+CFU_crop1May=CFU_crop1May(2:end,:);
+CFU_crop1Jun=CFU_crop1Jun(2:end,:);
+CFU_crop1Jul=CFU_crop1Jul(2:end,:);
+CFU_crop1Aug=CFU_crop1Aug(2:end,:);
+CFU_crop1Sep=CFU_crop1Sep(2:end,:);
+CFU_crop1Oct=CFU_crop1Oct(2:end,:);
+CFU_crop1Nov=CFU_crop1Nov(2:end,:);
+CFU_crop1Dec=CFU_crop1Dec(2:end,:);
+
+CFU_crop2=zeros(iterations,plantnum); %initialized to zeros
+for i=1:iterations
+    for j=1:plantnum
+        for k=plant2(i):7:har2(i)
+           tr = (feval(@transferfn,rand())/(1.29*10^8)); %transfer function
+        CFU_crop2(i,j)=tr*CFU_soil(i,j,k);
+            CFU_crop2(i,j)=10.^(log10(CFU_crop2(i,j))-0.171);
+        end
+    end
+    s='crop2';
+    disp(s);
+    disp(i);
+end
+
+CFU_crop2Jan=zeros(1,plantnum);
+CFU_crop2Feb=zeros(1,plantnum);
+CFU_crop2Mar=zeros(1,plantnum);
+CFU_crop2Apr=zeros(1,plantnum);
+CFU_crop2May=zeros(1,plantnum);
+CFU_crop2Jun=zeros(1,plantnum);
+CFU_crop2Jul=zeros(1,plantnum);
+CFU_crop2Aug=zeros(1,plantnum);
+CFU_crop2Sep=zeros(1,plantnum);
+CFU_crop2Oct=zeros(1,plantnum);
+CFU_crop2Nov=zeros(1,plantnum);
+CFU_crop2Dec=zeros(1,plantnum);
+for i=1:iterations
+     if (0<har2(i) && har2(i)<=31)
+        
+CFU_crop2Jan=[CFU_crop2Jan; CFU_crop2(i,:)];
+
+
+      elseif (31<har2(i) && har2(i)<=59)
+        
+CFU_crop2Feb=[CFU_crop2Feb; CFU_crop2(i,:)];
+
+    elseif (59<har2(i) && har2(i)<=90)
+      
+CFU_crop2Mar=[CFU_crop2Mar; CFU_crop2(i,:)];
+
+    elseif (90<har2(i) && har2(i)<=120)
+        
+CFU_crop2Apr=[CFU_crop2Apr; CFU_crop2(i,:)];
+
+    elseif (120<har2(i) && har2(i)<=151)
+     
+CFU_crop2May=[CFU_crop2May; CFU_crop2(i,:)];
+
+    elseif (151<har2(i) && har2(i)<=181)
+        
+CFU_crop2Jun=[CFU_crop2Jun; CFU_crop2(i,:)];
+
+    elseif (181<har2(i) && har2(i)<=212)
+        
+CFU_crop2Jul=[CFU_crop2Jul; CFU_crop2(i,:)];
+
+    elseif (212<har2(i) && har2(i)<=243)
+        
+CFU_crop2Aug=[CFU_crop2Aug; CFU_crop2(i,:)];
+
+    elseif (243<har2(i) && har2(i)<=273)
+        
+CFU_crop2Sep=[CFU_crop2Sep; CFU_crop2(i,:)];
+
+    elseif (273<har2(i) && har2(i)<=304)
+        
+CFU_crop2Oct=[CFU_crop2Oct; CFU_crop2(i,:)];
+
+    elseif (304<har2(i) && har2(i)<=334)
+
+CFU_crop2Nov=[CFU_crop2Nov; CFU_crop2(i,:)];
+
+    elseif (334<har2(i) && har2(i)<=365)
+
+CFU_crop2Dec=[CFU_crop2Dec; CFU_crop2(i,:)];
+
+       end
+end
+CFU_crop2Jan=CFU_crop2Jan(2:end,:);
+CFU_crop2Feb=CFU_crop2Feb(2:end,:);
+CFU_crop2Mar=CFU_crop2Mar(2:end,:);
+CFU_crop2Apr=CFU_crop2Apr(2:end,:);
+CFU_crop2May=CFU_crop2May(2:end,:);
+CFU_crop2Jun=CFU_crop2Jun(2:end,:);
+CFU_crop2Jul=CFU_crop2Jul(2:end,:);
+CFU_crop2Aug=CFU_crop2Aug(2:end,:);
+CFU_crop2Sep=CFU_crop2Sep(2:end,:);
+CFU_crop2Oct=CFU_crop2Oct(2:end,:);
+CFU_crop2Nov=CFU_crop2Nov(2:end,:);
+CFU_crop2Dec=CFU_crop2Dec(2:end,:);
+
+%maximum contaminated plants in each harvest (to estimate potentially
+%contaminated crops)
+Jan1=max(CFU_crop1Jan')
+Feb1=max(CFU_crop2Feb')
+Mar1=max(CFU_crop1Mar')
+Apr1=max(CFU_crop1Apr')
+May1=max(CFU_crop1May')
+Jun1=max(CFU_crop1Jun')
+Jul1=max(CFU_crop1Jul')
+Aug1=max(CFU_crop1Aug')
+Sep1=max(CFU_crop1Sep')
+Oct1=max(CFU_crop1Oct')
+Nov1=max(CFU_crop1Nov')
+Dec1=max(CFU_crop1Dec')
+
+Jan2=max(CFU_crop2Jan')
+Feb2=max(CFU_crop2Feb')
+Mar2=max(CFU_crop2Mar')
+Apr2=max(CFU_crop2Apr')
+May2=max(CFU_crop2May')
+Jun2=max(CFU_crop2Jun')
+Jul2=max(CFU_crop2Jul')
+Aug2=max(CFU_crop2Aug')
+Sep2=max(CFU_crop2Sep')
+Oct2=max(CFU_crop2Oct')
+Nov2=max(CFU_crop2Nov')
+Dec2=max(CFU_crop2Dec')
+
+
+for i=1:iterations
+    for k=1:365
+        CFUsoil=squeeze(CFU_soil(i,1:plantnum,k));
+        mn(i,k)=sum(CFUsoil)/plantnum;
+    end
+end
+        
+plot(max(log10(mn)));
+hold all;
+plot(min(log10(mn)));
+hold all;
+plot(mean(log10(mn)));
